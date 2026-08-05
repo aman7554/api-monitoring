@@ -1,0 +1,176 @@
+openapi: 3.0.3
+info:
+  title: PulseWatch API
+  description: API Monitoring & Observability Platform REST API documentation.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local Development Server
+paths:
+  /auth/register:
+    post:
+      summary: Register new user
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, full_name]
+              properties:
+                email:
+                  type: string
+                  example: user@example.com
+                password:
+                  type: string
+                  example: Password123!
+                full_name:
+                  type: string
+                  example: Jane Doe
+      responses:
+        '201':
+          description: User registered successfully
+  /auth/login:
+    post:
+      summary: Login user
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  example: admin@pulsewatch.io
+                password:
+                  type: string
+                  example: Password123!
+      responses:
+        '200':
+          description: JWT Access and Refresh Tokens returned
+  /organizations:
+    post:
+      summary: Create Organization
+      tags: [Organizations]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, slug]
+              properties:
+                name:
+                  type: string
+                  example: Acme Corp
+                slug:
+                  type: string
+                  example: acme-corp
+                plan:
+                  type: string
+                  example: pro
+      responses:
+        '201':
+          description: Organization created
+  /projects:
+    post:
+      summary: Create Project
+      tags: [Projects]
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [org_id, name, slug]
+              properties:
+                org_id:
+                  type: string
+                  format: uuid
+                name:
+                  type: string
+                  example: Web App Production
+                slug:
+                  type: string
+                  example: web-app-prod
+                is_public_status_page:
+                  type: boolean
+                  example: true
+                status_page_slug:
+                  type: string
+                  example: webapp-status
+      responses:
+        '201':
+          description: Project created
+  /monitors:
+    post:
+      summary: Create API Monitor
+      tags: [Monitors]
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [project_id, name, url]
+              properties:
+                project_id:
+                  type: string
+                  format: uuid
+                name:
+                  type: string
+                  example: Auth Service Health
+                type:
+                  type: string
+                  enum: [http, dns, ssl]
+                  example: http
+                url:
+                  type: string
+                  example: https://api.example.com/healthz
+                method:
+                  type: string
+                  example: GET
+                interval_seconds:
+                  type: integer
+                  example: 60
+                expected_status_code:
+                  type: integer
+                  example: 200
+      responses:
+        '201':
+          description: Monitor created
+  /public/status/{slug}:
+    get:
+      summary: Public Status Page Data
+      tags: [Public Status]
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Project status and open incidents
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key

@@ -1,0 +1,41 @@
+replicaCount:
+  api: 3
+  scheduler: 1
+  worker: 4
+
+image:
+  repository: pulsewatch
+  pullPolicy: IfNotPresent
+  tag: "v1.0.0"
+
+config:
+  port: "8080"
+  logLevel: "info"
+  environment: "production"
+  workerConcurrency: 15
+
+secrets:
+  databaseUrl: "postgres://postgres:postgrespassword@postgres-service:5432/pulsewatch?sslmode=disable"
+  redisUrl: "redis://redis-service:6379/0"
+  jwtSecret: "pulsewatch-production-secret-jwt-key"
+
+ingress:
+  enabled: true
+  className: "nginx"
+  host: "api.pulsewatch.io"
+
+resources:
+  api:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+  worker:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"

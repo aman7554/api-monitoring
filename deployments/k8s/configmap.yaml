@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pulsewatch-config
+  namespace: pulsewatch
+data:
+  PORT: "8080"
+  LOG_LEVEL: "info"
+  ENVIRONMENT: "production"
+  WORKER_CONCURRENCY: "15"

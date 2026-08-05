@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pulsewatch-scheduler
+  namespace: pulsewatch
+  labels:
+    app: pulsewatch-scheduler
+spec:
+  replicas: 1 # Leader / Singleton Scheduler
+  selector:
+    matchLabels:
+      app: pulsewatch-scheduler
+  template:
+    metadata:
+      labels:
+        app: pulsewatch-scheduler
+    spec:
+      containers:
+        - name: scheduler
+          image: pulsewatch/scheduler:v1.0.0
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: pulsewatch-config
+            - secretRef:
+                name: pulsewatch-secrets
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"

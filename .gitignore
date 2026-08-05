@@ -1,0 +1,49 @@
+# Compiled Binaries & Build Output
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+
+# Go Test & Coverage Outputs
+*.out
+*.coverprofile
+coverage.txt
+coverage.html
+
+# Environment Variables & Secrets
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# Logs & Temporary Files
+*.log
+logs/
+tmp/
+temp/
+
+# IDEs and Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Operating System Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Node / Web (if dependencies or build steps are added in future)
+node_modules/
+dist/
+build/
+.npm

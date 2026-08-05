@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pulsewatch-worker
+  namespace: pulsewatch
+  labels:
+    app: pulsewatch-worker
+spec:
+  replicas: 4 # Horizontally scalable workers
+  selector:
+    matchLabels:
+      app: pulsewatch-worker
+  template:
+    metadata:
+      labels:
+        app: pulsewatch-worker
+    spec:
+      containers:
+        - name: worker
+          image: pulsewatch/worker:v1.0.0
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: pulsewatch-config
+            - secretRef:
+                name: pulsewatch-secrets
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"

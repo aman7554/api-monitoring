@@ -1,0 +1,10 @@
+DROP TABLE IF EXISTS audit_logs;
+DROP TABLE IF EXISTS api_keys;
+DROP TABLE IF EXISTS notifications;
+DROP TABLE IF EXISTS incidents;
+DROP TABLE IF EXISTS check_results;
+DROP TABLE IF EXISTS monitors;
+DROP TABLE IF EXISTS projects;
+DROP TABLE IF EXISTS members;
+DROP TABLE IF EXISTS organizations;
+DROP TABLE IF EXISTS users;

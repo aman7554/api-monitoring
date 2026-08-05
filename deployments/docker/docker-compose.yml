@@ -1,0 +1,106 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: pulsewatch-postgres
+    environment:
+      POSTGRES_DB: pulsewatch
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ../../migrations/000001_init_schema.up.sql:/docker-entrypoint-initdb.d/01_init.sql
+      - ../../migrations/seed.sql:/docker-entrypoint-initdb.d/02_seed.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: pulsewatch-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ../../
+      dockerfile: deployments/docker/Dockerfile.api
+    container_name: pulsewatch-api
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: "8080"
+      DATABASE_URL: "postgres://postgres:postgrespassword@postgres:5432/pulsewatch?sslmode=disable"
+      REDIS_URL: "redis://redis:6379/0"
+      JWT_SECRET: "pulsewatch-production-secret-jwt-key"
+      LOG_LEVEL: "info"
+      ENVIRONMENT: "development"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  scheduler:
+    build:
+      context: ../../
+      dockerfile: deployments/docker/Dockerfile.scheduler
+    container_name: pulsewatch-scheduler
+    environment:
+      DATABASE_URL: "postgres://postgres:postgrespassword@postgres:5432/pulsewatch?sslmode=disable"
+      REDIS_URL: "redis://redis:6379/0"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: ../../
+      dockerfile: deployments/docker/Dockerfile.worker
+    container_name: pulsewatch-worker
+    ports:
+      - "8081:8081"
+    environment:
+      DATABASE_URL: "postgres://postgres:postgrespassword@postgres:5432/pulsewatch?sslmode=disable"
+      REDIS_URL: "redis://redis:6379/0"
+      WORKER_CONCURRENCY: "10"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  prometheus:
+    image: prom/prometheus:v2.50.0
+    container_name: pulsewatch-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ../prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana:10.3.1
+    container_name: pulsewatch-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - ../grafana/dashboards/prometheus_datasource.yaml:/etc/grafana/provisioning/datasources/prometheus.yaml
+      - ../grafana/dashboards/dashboards_provider.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml
+      - ../grafana/dashboards/pulsewatch_overview.json:/etc/grafana/provisioning/dashboards/pulsewatch_overview.json
+
+volumes:
+  postgres_data:
